@@ -1,0 +1,108 @@
+# Rime schema settings
+# encoding: utf-8
+
+schema:
+  schema_id: wubi98
+  name: "98五笔"
+  version: "2.33"
+  author:
+    - 發明人 王永民
+  description: |
+    五笔98版
+    固定单字自动造词
+    分号第二重码
+    空码空格清屏
+    字符集过滤
+    敲 z 鍵進入拼音反查
+  dependencies:
+    - pinyin_simp
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ 中文, 西文 ]
+  - name: full_shape
+    states: [ 半角, 全角 ]
+  - name: ascii_punct
+    states: [ ，。, ，． ]
+  - options: [utf8, gbk, gb2312]    # 字符集选单 
+    reset: 3                        # 默认 GB2312
+    states:                         # 可以通过切功能键，切至 UTF8 等超大字符集
+      - UTF-8
+      - GBK
+      - GB2312
+
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - table_translator@fixed
+    - table_translator
+    - punct_translator
+    - reverse_lookup_translator
+  filters:
+    - uniquifier
+    - charset_filter@gb2312
+
+speller:
+  auto_select: true
+  delimiter: "`"
+  max_code_length: 4
+
+fixed:
+  __include: /translator
+  initial_quality: 19260817
+  enable_user_dict: false
+  enable_completion: true
+
+translator:
+  dictionary: wubi98
+  enable_charset_filter: false
+  enable_sentence: false
+  enable_encoder: true
+  encode_commit_history: true
+  max_phrase_length: 4
+  enable_completion: true
+  enable_user_dict: true
+  disable_user_dict_for_patterns:
+    - "^z.*$"
+
+reverse_lookup:
+  dictionary: pinyin_simp
+  prefix: "z"
+  suffix: "'"
+  tips: 〔拼音〕
+  preedit_format:
+    - xform/([nl])v/$1ü/
+    - xform/([nl])ue/$1üe/
+    - xform/([jqxy])v/$1u/
+
+punctuator:
+  import_preset: symbols
+key_binder:
+  import_preset: default
+  bindings:
+      - { when: has_menu, accept: semicolon, send: 2 }
+      - { when: has_menu, accept: period, send: period }
+      - { when: paging, accept: comma, send: comma }
+      - { when: composing, accept: space, send: Escape }
+      - { when: has_menu, accept: space, send: space }
+
+recognizer:
+  import_preset: default
+  patterns:
+    reverse_lookup: "^z[a-z]*'?$"
+    punct: "^/([0-9]0?|[a-z]+)$"
